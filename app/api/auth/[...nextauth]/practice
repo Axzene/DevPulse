@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    long long maximumSubarraySum(vector<int>& nums, int k) {
+        
+        int n = nums.size();
+        
+        vector<int> sorted_desc = nums;
+        sort(sorted_desc.begin(), sorted_desc.end(), greater<int>());
+        
+        vector<long long> prefix(n + 1, 0);
+        for (int i = 0; i < n; i++)
+            prefix[i + 1] = prefix[i] + nums[i];
+        
+        long long ans = *max_element(nums.begin(), nums.end());
+        
+        for (int i = 0; i < n; i++) {
+            multiset<int> in_sub;
+            multiset<int, greater<int>> out_sub(sorted_desc.begin(), sorted_desc.end());
+            
+            for (int x : nums)
+                out_sub.insert(x); 
+            in_sub.clear();
+            multiset<int, greater<int>> outside(nums.begin(), nums.end());
+            
+            long long sub_sum = 0;
+            
+            for (int j = i; j < n; j++) {
+                in_sub.insert(nums[j]);
+                outside.erase(outside.find(nums[j]));
+                sub_sum += nums[j];
+                
+                int sub_len = j - i + 1;
+                
+                multiset<int> temp_in = in_sub;
+                multiset<int, greater<int>> temp_out = outside;
+                
+                long long best_sum = sub_sum;
+                int swaps = 0;
+
+                while (swaps < k && !temp_out.empty() && !temp_in.empty()) {
+                    int best_out = *temp_out.begin();
+                    int worst_in = *temp_in.begin();
+                    
+                    if (best_out <= worst_in) break;
+                    
+                    best_sum += best_out - worst_in;
+                    temp_out.erase(temp_out.begin());
+                    temp_out.insert(worst_in);
+                    temp_in.erase(temp_in.begin());
+                    temp_in.insert(best_out);
+                    swaps++;
+                }
+                
+                ans = max(ans, best_sum);
+            }
+        }
+        
+        return ans;
+    }
+};
+
+// ─── Main / Test Driver ───────────────────────────────────────────────────────
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    Solution sol;
+    
+    // Example 1
+    vector<int> nums1 = {1, -1, 0, 2};
+    int k1 = 1;
+    cout << "Example 1: " << sol.maximumSubarraySum(nums1, k1) << endl; // Expected: 3
+    
+    // Example 2
+    vector<int> nums2 = {4, 3, 2, 4};
+    int k2 = 2;
+    cout << "Example 2: " << sol.maximumSubarraySum(nums2, k2) << endl; // Expected: 13
+    
+    // Example 3
+    vector<int> nums3 = {-1, -2};
+    int k3 = 0;
+    cout << "Example 3: " << sol.maximumSubarraySum(nums3, k3) << endl; // Expected: -1
+    
+    return 0;
+}

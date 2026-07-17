@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { getGithubAccessToken, fetchGithubEvents } from "@/lib/github"
+import { getGithubAccessToken, fetchGithubEvents, fetchCommitsBetween } from "@/lib/github"
 
 type DayBucket = {
   commits: number
@@ -43,20 +43,37 @@ export async function syncDailyMetrics(userId: string) {
     const hour = createdAt.getUTCHours()
 
     if (event.type === "PushEvent") {
-      const bucket = getBucket(dateKey)
-      const commitCount = event.payload?.commits?.length ?? 0
+  const before = event.payload?.before
+  const head = event.payload?.head
+  if (!before || !head) continue
 
-      bucket.commits += commitCount
-      bucket.repos.add(event.repo.name)
-      bucket.hourCounts[hour] = (bucket.hourCounts[hour] ?? 0) + commitCount
+  const commits = await fetchCommitsBetween(
+    accessToken,
+    event.repo.name,
+    before,
+    head
+  )
 
-      // Approximation: GitHub only gives one timestamp per push,
-      // not per individual commit — so all commits in a push
-      // are attributed to the push's hour.
-      if (hour >= 23 || hour < 5) {
-        bucket.lateNightCommits += commitCount
-      }
+  const bucket = getBucket(dateKey)
+  bucket.repos.add(event.repo.name)
+
+  for (const commit of commits) {
+    const commitDate = new Date(commit.commit.author.date)
+    const commitDateKey = getDateKey(commit.commit.author.date)
+    const commitBucket = getBucket(commitDateKey)
+    const commitHour = commitDate.getUTCHours()
+
+    commitBucket.commits += 1
+    commitBucket.repos.add(event.repo.name)
+    commitBucket.hourCounts[commitHour] =
+      (commitBucket.hourCounts[commitHour] ?? 0) + 1
+
+    if (commitHour >= 23 || commitHour < 5) {
+      commitBucket.lateNightCommits += 1
     }
+  }
+    }
+
 
     if (
       event.type === "PullRequestEvent" &&

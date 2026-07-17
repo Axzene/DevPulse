@@ -39,3 +39,27 @@ export async function fetchGithubEvents(accessToken: string, username: string) {
 
   return events
 }
+export async function fetchCommitsBetween(
+  accessToken: string,
+  repoFullName: string,
+  base: string,
+  head: string
+) {
+  const res = await fetch(
+    `${GITHUB_API}/repos/${repoFullName}/compare/${base}...${head}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+      },
+    }
+  )
+
+  if (!res.ok) {
+    // Can happen for force-pushes, deleted branches, etc. — treat as no data
+    return []
+  }
+
+  const data = await res.json()
+  return data.commits ?? []
+}

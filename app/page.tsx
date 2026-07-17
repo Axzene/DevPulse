@@ -1,5 +1,5 @@
 import { auth, signIn, signOut } from "@/auth"
-
+import { SyncButton } from "@/app/components/SyncButton"
 export default async function Home() {
   const session = await auth()
 
@@ -14,6 +14,10 @@ export default async function Home() {
               Sign Out
             </button>
           </form>
+          <a href="/dashboard" className="text-blue-400 underline">
+            Go to Dashboard
+          </a>
+          <SyncButton />
         </div>
       ):(
         <form action={async ()=> { "use server"; await signIn("github")}}>

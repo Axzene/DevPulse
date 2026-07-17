@@ -1,6 +1,6 @@
 import "dotenv/config"
 import { prisma } from "../lib/prisma"
-import { getGithubAccessToken, fetchGithubEvents } from "../lib/github"
+import { syncDailyMetrics } from "../lib/metrics"
 
 async function main() {
   const user = await prisma.user.findFirst({
@@ -12,11 +12,8 @@ async function main() {
     return
   }
 
-  const accessToken = await getGithubAccessToken(user.id)
-  const events = await fetchGithubEvents(accessToken, user.githubUsername!)
-
-  console.log("Total events fetched:", events.length)
-  console.log("Event types:", [...new Set(events.map((e) => e.type))])
+  const results = await syncDailyMetrics(user.id)
+  console.log(JSON.stringify(results, null, 2))
 }
 
 main()

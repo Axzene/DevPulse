@@ -5,7 +5,8 @@ import CommitTrend from "@/app/components/charts/CommitTrend";
 import LateNightRatio from "@/app/components/charts/LateNightRatio";
 import HourHistogram from "@/app/components/charts/HourHistogram";
 import CommitHeatmap from "@/app/components/charts/CommitHeatmap";
-
+import InsightButton from "@/app/components/InsightButton";
+import GoalsPanel from "@/app/components/GoalsPanel";
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/api/auth/signin");
@@ -28,7 +29,13 @@ export default async function DashboardPage() {
         <StatCard label="Total Commits" value={totalCommits} accent="var(--accent-commit)" />
         <StatCard label="Active Days" value={activeDays} accent="var(--accent-data)" />
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <StatCard label="Total Commits" value={totalCommits} accent="var(--accent-commit)" />
+        <StatCard label="Active Days" value={activeDays} accent="var(--accent-data)" />
+      </div>
 
+      <InsightButton />
+      <GoalsPanel />
       <ChartCard title="Commit Activity">
         <CommitHeatmap data={commitCalendar} />
       </ChartCard>
@@ -37,7 +44,7 @@ export default async function DashboardPage() {
         <ChartCard title="Commit Trend">
           <CommitTrend data={commitTrend} />
         </ChartCard>
-        <ChartCard title="Late-Night Commit Ratio">
+        <ChartCard title="Late-Night Commit Ratio(UTC)">
           <LateNightRatio data={lateNightRatio} />
         </ChartCard>
       </div>

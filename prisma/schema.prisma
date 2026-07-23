@@ -72,15 +72,25 @@ model Insight {
   weekOf          DateTime
   user            User @relation(fields: [userId],  references :[id], onDelete: Cascade)
   createdAt       DateTime @default(now())
+
+  @@unique([userId, weekOf])
+}
+
+enum GoalMetric {
+  COMMITS_PER_WEEK
+  ACTIVE_DAYS_PER_WEEK
+  LATE_NIGHT_RATIO_MAX
 }
 
 model Goal {
-  id              String    @id @default(cuid())
-  userId          String
-  metric          String
-  target          Float
-  user            User    @relation(fields: [userId], references :[id], onDelete:Cascade)
-  createdAt       DateTime @default(now())
+  id        String     @id @default(cuid())
+  userId    String
+  metric    GoalMetric
+  target    Float
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, metric])
 }
 
 model VerificationToken {
